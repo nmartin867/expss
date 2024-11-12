@@ -31,7 +31,14 @@ jobs:
             --file ./Dockerfile ./" >> $GITHUB_OUTPUT
 
     - name: Docker Buildx Setup
+      id: buildx
       uses: crazy-max/ghaction-docker-buildx@v3
+      with:
+        buildx-version: 'latest'
+        qemu-version: 'latest'
+
+    - name: Available platforms
+      run: echo ${{ steps.buildx.outputs.platforms }}
 
     - name: Docker Buildx (build)
       if: success() && github.event_name != 'pull_request'
