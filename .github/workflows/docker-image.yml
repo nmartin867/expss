@@ -20,7 +20,7 @@ jobs:
       id: prepare
       run: |
           DOCKER_IMAGE=nmartin867/expss
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v7,linux/arm64
+          DOCKER_PLATFORMS=linux/amd64
           VERSION=edge
           echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
