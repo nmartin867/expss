@@ -10,31 +10,32 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    env:      
-      DOCKER_REGISTRY: docker.io      
-      DOCKER_IMAGE: nmartin867/expss
-      DOCKER_TARGET_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-      VERSION: ${GITHUB_RUN_NUMBER}
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Docker Buildx Setup
-      uses: crazy-max/ghaction-docker-buildx@v3
-      with:
-        version: latest
-        
     - name: Prepare
       if: success()
       id: prepare
       run: |
+          DOCKER_IMAGE=nmartin867/expss
+          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          VERSION=edge
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --build-arg VERSION=${VERSION} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8}
+
+    - name: Docker Buildx Setup
+      uses: crazy-max/ghaction-docker-buildx@v3
+
+    - name: Docker Buildx (build)
+      if: success() && github.event_name != 'pull_request'
+      run: |
+        docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
             
     - name: Docker Login
       if: success() && github.event_name != 'pull_request'
@@ -45,7 +46,8 @@ jobs:
 
     - name: Docker Buildx (push)
       if: success() && github.event_name != 'pull_request'
-      run: | 
+      run: |
         docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
+
       
       
