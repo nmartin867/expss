@@ -1,0 +1,53 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    env:      
+      DOCKER_REGISTRY: docker.io      
+      DOCKER_IMAGE: nmartin867/expss      
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}  
+      DOCKER_TARGET_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+      VERSION: ${GITHUB_RUN_NUMBER}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Docker Buildx Setup
+      uses: crazy-max/ghaction-docker-buildx@v3
+      with:
+        version: latest
+        
+    - name: Prepare
+      if: success()
+      id: prepare
+      run: |
+          echo ::set-output name=docker_image::${DOCKER_IMAGE}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
+            --build-arg VERSION=${VERSION} \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8}
+            
+    - name: Docker Login
+      if: success() && github.event_name != 'pull_request'
+      uses: docker/login-action@v1
+      with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Docker Buildx (push)
+      if: success() && github.event_name != 'pull_request'
+      run: | 
+        docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
+      
+      
