@@ -20,15 +20,15 @@ jobs:
       id: prepare
       run: |
           DOCKER_IMAGE=nmartin867/expss
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          DOCKER_PLATFORMS=linux/amd64,linux/arm/v7,linux/arm64
           VERSION=edge
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
+          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "buildx_args=--platform ${DOCKER_PLATFORMS} \
             --build-arg VERSION=${VERSION} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            --file ./Dockerfile ./
+            --file ./Dockerfile ./" >> $GITHUB_OUTPUT
 
     - name: Docker Buildx Setup
       uses: crazy-max/ghaction-docker-buildx@v3
