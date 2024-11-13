@@ -12,7 +12,7 @@ USER node
 
 RUN npm install --registry http://registry.npmjs.org/
 
-ENV PORT=3000
+ENV PORT=80
 
 EXPOSE $PORT
 
